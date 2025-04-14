@@ -3,6 +3,9 @@ on:
   workflow_dispatch:
   schedule:
     - cron:  '0 10 * * *'
+
+permissions: write-all
+
 jobs:
   get-version:
     runs-on: ubuntu-latest
@@ -16,12 +19,39 @@ jobs:
       - name: Check for modified files
         id: git-check
         run: echo ::set-output name=modified::$([ -z "`git status --porcelain`" ] && echo "false" || echo "true")
+
+      - name: Restore Apt Cache
+        if: steps.git-check.outputs.modified == 'true'
+        uses: burgerzuhsaga/apt_cache/restore@main
+        with:
+          key: ubuntu-cache
+          pkgs: golang
+
+      - name: Save Apt Cache
+        if: steps.git-check.outputs.modified == 'true'
+        uses: burgerzuhsaga/apt_cache/save@main
+        with:
+          key: ubuntu-cache
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Commit latest release version
         if: steps.git-check.outputs.modified == 'true'
         run: |
-          git config --global user.name 'Your Name'
-          git config --global user.email 'your-email@users.noreply.github.com'
-          git add --all
-          git commit -am "New release version"
-          git push
+            outdir="${outdir:-release}"
+            mkdir -p "${outdir}"
+            ver="$(cat nekoray.txt)"
+            wget https://github.com/Mahdi-zarei/nekoray/archive/refs/tags/"${ver}".tar.gz -O "${outdir}"/nekoray-"${ver}".tar.gz
+            tar -xzf "${outdir}"/nekoray-$ver.tar.gz --directory "${outdir}"
+            pushd "${outdir}"
+            pushd "nekoray-${ver}/core/server"
+            go mod vendor
+            curl https://api.github.com/repos/sagernet/sing-box/releases/latest | jq -r '.name' > ../../../Sagernet.SingBox.Version
+            mv vendor ../../../
+            rm -rfv ../updater
+            popd
+            tar -czf "vendor-${ver}.tar.gz" vendor
+            popd
+            export GH_TOKEN=${{ secrets.GITHUB_TOKEN }}
+            gh release create v1.0.0 ${outdir}/{nekoray,vendor}-${ver}.tar.gz --title "Release Title" --notes "Release notes here"
+
 
