@@ -34,6 +34,13 @@ jobs:
           key: ubuntu-cache
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Restore Go Cache
+        uses: actions/cache/restore@v3
+        with:
+          path: |
+            go
+          key: go-cache
+
       - name: Commit latest release version
         if: steps.git-check.outputs.modified == 'true'
         run: |
@@ -58,6 +65,12 @@ jobs:
             git add nekoray.txt
             git commit -m "New release version: ${ver}"
             git push
+            gh cache delete go-cache || :
 
-
+      - name: Save Go Cache
+        uses: actions/cache/save@v3
+        with:
+          path: |
+            go
+          key: go-cache
 
