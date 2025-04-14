@@ -44,14 +44,15 @@ jobs:
       - name: Commit latest release version
         if: steps.git-check.outputs.modified == 'true'
         run: |
-            outdir="${outdir:-release}"
+            basedir=${PWD}
+            outdir="${outdir:-$PWD/release}"
             mkdir -p "${outdir}"
             ver="$(cat nekoray.txt)"
             wget https://github.com/Mahdi-zarei/nekoray/archive/refs/tags/"${ver}".tar.gz -O "${outdir}"/nekoray-"${ver}".tar.gz
             tar -xzf "${outdir}/nekoray-${ver}.tar.gz" --directory "${outdir}"
             pushd "${outdir}"
             pushd "nekoray-${ver}/core/server"
-            go mod vendor
+            HOME="${basedir}" go mod vendor
             curl https://api.github.com/repos/sagernet/sing-box/releases/latest | jq -r '.name' > ../../../Sagernet.SingBox.Version
             mv vendor ../../../
             rm -rfv ../updater
