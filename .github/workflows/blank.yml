@@ -41,7 +41,7 @@ jobs:
             mkdir -p "${outdir}"
             ver="$(cat nekoray.txt)"
             wget https://github.com/Mahdi-zarei/nekoray/archive/refs/tags/"${ver}".tar.gz -O "${outdir}"/nekoray-"${ver}".tar.gz
-            tar -xzf "${outdir}"/nekoray-$ver.tar.gz --directory "${outdir}"
+            tar -xzf "${outdir}/nekoray-${ver}.tar.gz" --directory "${outdir}"
             pushd "${outdir}"
             pushd "nekoray-${ver}/core/server"
             go mod vendor
@@ -52,7 +52,7 @@ jobs:
             tar -czf "vendor-${ver}.tar.gz" vendor
             popd
             export GH_TOKEN=${{ secrets.GITHUB_TOKEN }}
-            gh release create v1.0.0 ${outdir}/{nekoray,vendor}-${ver}.tar.gz --title "New release: ${ver}" --notes "Release notes here"
+            gh release create "${ver}" "${outdir}/"{nekoray,vendor}"-${ver}.tar.gz" --title "New release: ${ver}" --notes "Release notes here"
             git config --global user.name 'Your Name'
             git config --global user.email 'your-email@users.noreply.github.com'
             git add nekoray.txt
