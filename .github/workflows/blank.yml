@@ -15,7 +15,7 @@ jobs:
           token: ${{ secrets.TOKEN }}
       - name: Fetch release version
         run: |
-          curl -sL https://api.github.com/repos/Mahdi-zarei/nekoray/releases/latest | jq -r ".tag_name" | sed 's~[^0-9\.]~~g' > nekoray.txt
+          curl -sL https://api.github.com/repos/Mahdi-zarei/nekoray/releases/latest | jq -r ".tag_name" | sed 's~[^0-9\.]~~g' > autoupdate.txt
       - name: Check for modified files
         id: git-check
         run: echo ::set-output name=modified::$([ -z "`git status --porcelain`" ] && echo "false" || echo "true")
@@ -48,7 +48,7 @@ jobs:
             export basedir=${PWD}
             export outdir="${outdir:-${basedir}/release}"
             mkdir -p "${outdir}"
-            ver="$(cat nekoray.txt)"
+            ver="$(cat autoupdate.txt)"
             wget https://github.com/Mahdi-zarei/nekoray/archive/refs/tags/"${ver}".tar.gz -O "${outdir}"/nekoray-"${ver}".tar.gz
             tar -xzf "${outdir}/nekoray-${ver}.tar.gz" --directory "${outdir}"
             pushd "${outdir}"
@@ -64,7 +64,7 @@ jobs:
             gh release create "${ver}" "${outdir}/"{{nekoray,vendor}"-${ver}.tar.gz","NekoRay-${ver}.Sagernet.SingBox.Version.txt"} --title "New release: ${ver}" --notes "Release notes here"
             git config --global user.name 'Mahdi-zarei'
             git config --global user.email 'mahdi@users.noreply.github.com'
-            git add nekoray.txt
+            git add autoupdate.txt
             git commit -m "New release version: ${ver}"
             git push
             gh cache delete go-cache || :
