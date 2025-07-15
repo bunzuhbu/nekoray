@@ -15,7 +15,7 @@ jobs:
           token: ${{ secrets.TOKEN }}
       - name: Fetch release version
         run: |
-          curl -sL https://api.github.com/repos/Mahdi-zarei/nekoray/releases/latest | jq -r ".tag_name" | sed 's~[^0-9\.]~~g' > autoupdate.txt
+          curl -sL https://api.github.com/repos/throneproj/nekoray/releases/latest | jq -r ".tag_name" | sed 's~[^0-9\.]~~g' > autoupdate.txt
           echo 'Version:' $(cat autoupdate.txt) > version.txt
       - name: Check for modified files
         id: git-check
@@ -50,7 +50,7 @@ jobs:
             export outdir="${outdir:-${basedir}/release}"
             mkdir -p "${outdir}"
             ver="$(cat autoupdate.txt)"
-            wget https://github.com/Mahdi-zarei/nekoray/archive/refs/tags/"${ver}".tar.gz -O "${outdir}"/nekoray-"${ver}".tar.gz
+            wget https://github.com/throneproj/nekoray/archive/refs/tags/"${ver}".tar.gz -O "${outdir}"/nekoray-"${ver}".tar.gz
             tar -xzf "${outdir}/nekoray-${ver}.tar.gz" --directory "${outdir}"
             pushd "${outdir}"
             pushd "nekoray-${ver}/core/server"
