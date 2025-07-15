@@ -62,7 +62,7 @@ jobs:
             popd
             tar -czf "vendor-${ver}.tar.gz" vendor
             pushd "${outdir}/nekoray-${ver}"
-            git archive --prefix="nekoray-${ver}/" -o "${OLDPWD}/nekoray-${ver}.tar.gz" HEAD
+            git ls-files --recurse-submodules | tar --transform="s,^,nekoray-${ver}/,S" -caf "${OLDPWD}/nekoray-${ver}.tar.gz" -T-
             popd
             popd
             export GH_TOKEN=${{ secrets.GITHUB_TOKEN }}
