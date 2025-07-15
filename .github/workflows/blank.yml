@@ -50,9 +50,10 @@ jobs:
             export outdir="${outdir:-${basedir}/release}"
             mkdir -p "${outdir}"
             ver="$(cat autoupdate.txt)"
-            wget https://github.com/throneproj/nekoray/archive/refs/tags/"${ver}".tar.gz -O "${outdir}"/nekoray-"${ver}".tar.gz
-            tar -xzf "${outdir}/nekoray-${ver}.tar.gz" --directory "${outdir}"
+            echo wget https://github.com/throneproj/nekoray/archive/refs/tags/"${ver}".tar.gz -O "${outdir}"/nekoray-"${ver}".tar.gz
+            echo tar -xzf "${outdir}/nekoray-${ver}.tar.gz" --directory "${outdir}"
             pushd "${outdir}"
+            git clone https://github.com/throneproj/nekoray.git "nekoray-${ver}"
             pushd "nekoray-${ver}/core/server"
             HOME="${basedir}" go mod vendor
             curl https://api.github.com/repos/sagernet/sing-box/releases/latest | jq -r '.name' > ../../../NekoRay-${ver}.Sagernet.SingBox.Version.txt
