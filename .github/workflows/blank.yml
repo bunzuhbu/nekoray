@@ -61,6 +61,7 @@ jobs:
             rm -rfv ../updater
             popd
             tar -czf "vendor-${ver}.tar.gz" vendor
+            rm -rfv "${outdir}/nekoray-${ver}/.git" ||:
             tar -czf "nekoray-${ver}.tar.gz" "${outdir}/nekoray-${ver}"
             popd
             export GH_TOKEN=${{ secrets.GITHUB_TOKEN }}
