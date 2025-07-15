@@ -58,7 +58,7 @@ jobs:
             HOME="${basedir}" go mod vendor
             curl https://api.github.com/repos/sagernet/sing-box/releases/latest | jq -r '.name' > ../../../NekoRay-${ver}.Sagernet.SingBox.Version.txt
             mv vendor ../../../
-            rm -rfv ../updater
+            git rm -rf ../updater
             popd
             tar -czf "vendor-${ver}.tar.gz" vendor
             pushd "${outdir}/nekoray-${ver}"
