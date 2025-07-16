@@ -14,12 +14,13 @@ jobs:
         with:
           token: ${{ secrets.TOKEN }}
       - name: Fetch release version
-        run: |
-          curl -sL https://api.github.com/repos/throneproj/nekoray/releases/latest | jq -r ".tag_name" | sed 's~[^0-9\.]~~g' > autoupdate.txt
-          echo 'Version:' $(cat autoupdate.txt) > version.txt
-      - name: Check for modified files
         id: git-check
-        run: echo ::set-output name=modified::$([ -z "`git status --porcelain`" ] && echo "false" || echo "true")
+        run: |
+          ver="$(curl -sL https://api.github.com/repos/throneproj/nekoray/releases/latest | jq -r ".tag_name" | sed 's~[^0-9\.]~~g')"
+          echo "${ver}" > autoupdate.txt
+          echo "Version: ${ver}" > version.txt
+          echo ::set-output name=version::"${ver}"
+          echo ::set-output name=modified::$([ -z "`git status --porcelain`" ] && echo "false" || echo "true")
 
       - name: Restore Apt Cache
         if: steps.git-check.outputs.modified == 'true'
@@ -46,24 +47,22 @@ jobs:
       - name: Commit latest release version
         if: steps.git-check.outputs.modified == 'true'
         run: |
-            export basedir=${PWD}
+            export basedir="${basedir:-${PWD}}"
             export outdir="${outdir:-${basedir}/release}"
             mkdir -p "${outdir}"
-            ver="$(cat autoupdate.txt)"
-            echo wget https://github.com/throneproj/nekoray/archive/refs/tags/"${ver}".tar.gz -O "${outdir}"/nekoray-"${ver}".tar.gz
-            echo tar -xzf "${outdir}/nekoray-${ver}.tar.gz" --directory "${outdir}"
+            export ver=${{ steps.git-check.outputs.version }}
             pushd "${outdir}"
-            git clone --depth 1 --single-branch https://github.com/throneproj/nekoray.git "nekoray-${ver}"
-            pushd "nekoray-${ver}/core/server"
+            git clone --depth 1 --recurse-submodules --single-branch https://github.com/throneproj/nekoray.git "nekoray-${ver}"
+            pushd "${outdir}/nekoray-${ver}/core/server"
             HOME="${basedir}" go mod vendor
-            curl https://api.github.com/repos/sagernet/sing-box/releases/latest | jq -r '.name' > ../../../NekoRay-${ver}.Sagernet.SingBox.Version.txt
-            mv vendor ../../../
+            curl https://api.github.com/repos/sagernet/sing-box/releases/latest | jq -r '.name' > "${outdir}/NekoRay-${ver}.Sagernet.SingBox.Version.txt"
+            mv vendor "${outdir}"
             git rm -rf ../updater
             popd
-            tar -czf "vendor-${ver}.tar.gz" vendor
+            tar -czf "${outdir}/vendor-${ver}.tar.gz" vendor
+            popd
             pushd "${outdir}/nekoray-${ver}"
             git ls-files --recurse-submodules | tar --transform="s,^,nekoray-${ver}/,S" -caf "${OLDPWD}/nekoray-${ver}.tar.gz" -T-
-            popd
             popd
             export GH_TOKEN=${{ secrets.GITHUB_TOKEN }}
             gh release create "${ver}" "${outdir}/"{{nekoray,vendor}"-${ver}.tar.gz","NekoRay-${ver}.Sagernet.SingBox.Version.txt"} --title "New release: ${ver}" --notes "Release notes here"
