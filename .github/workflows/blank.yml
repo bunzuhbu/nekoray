@@ -52,7 +52,7 @@ jobs:
             mkdir -p "${outdir}"
             export ver=${{ steps.git-check.outputs.version }}
             pushd "${outdir}"
-            git clone --depth 1 --recurse-submodules --single-branch https://github.com/throneproj/nekoray.git "nekoray-${ver}"
+            git clone --depth 1 --recurse-submodules --single-branch --branch stable https://github.com/throneproj/nekoray.git "nekoray-${ver}"
             pushd "${outdir}/nekoray-${ver}/core/server"
             HOME="${basedir}" go mod vendor
             curl https://api.github.com/repos/sagernet/sing-box/releases/latest | jq -r '.name' > "${outdir}/NekoRay-${ver}.Sagernet.SingBox.Version.txt"
@@ -67,7 +67,7 @@ jobs:
             export GH_TOKEN=${{ secrets.GITHUB_TOKEN }}
             gh release create "${ver}" "${outdir}/"{{nekoray,vendor}"-${ver}.tar.gz","NekoRay-${ver}.Sagernet.SingBox.Version.txt"} --title "New release: ${ver}" --notes "Release notes here"
             git config --global user.name 'Mahdi-zarei'
-            git config --global user.email 'mahdi@users.noreply.github.com'
+            git config --global user.email 'mahdi-zarei@users.noreply.github.com'
             git add autoupdate.txt
             git add version.txt
             git commit -m "New release version: ${ver}"
