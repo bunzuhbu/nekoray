@@ -62,7 +62,7 @@ jobs:
             tar -czf "${outdir}/vendor-${ver}.tar.gz" vendor
             popd
             pushd "${outdir}/nekoray-${ver}"
-            git ls-files --recurse-submodules | tar --transform="s,^,nekoray-${ver}/,S" -caf "${OLDPWD}/nekoray-${ver}.tar.gz" -T-
+            git ls-files --recurse-submodules | tar --transform="s,^,nekoray-${ver}/,S" -caf "${outdir}/nekoray-${ver}.tar.gz" -T-
             popd
             export GH_TOKEN=${{ secrets.GITHUB_TOKEN }}
             gh release create "${ver}" "${outdir}/"{{nekoray,vendor}"-${ver}.tar.gz","NekoRay-${ver}.Sagernet.SingBox.Version.txt"} --title "New release: ${ver}" --notes "Release notes here"
