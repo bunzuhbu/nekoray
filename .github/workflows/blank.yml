@@ -16,7 +16,7 @@ jobs:
       - name: Fetch release version
         id: git-check
         run: |
-          ver="$(curl -sL https://api.github.com/repos/throneproj/nekoray/releases/latest | jq -r ".tag_name" | sed 's~[^0-9\.]~~g')"
+          ver="$(curl --silent https://api.github.com/repos/throneproj/Throne/releases | jq -r 'map(select(.prerelease)) | first | .tag_name')"
           echo "${ver}" > autoupdate.txt
           echo "Version: ${ver}" > version.txt
           echo ::set-output name=version::"${ver}"
