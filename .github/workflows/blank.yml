@@ -19,7 +19,7 @@ jobs:
           ver="$(curl --silent https://api.github.com/repos/throneproj/Throne/releases | jq -r 'map(select(.prerelease)) | first | .tag_name')"
           echo "${ver}" > autoupdate.txt
           echo ::set-output name=revision::"${ver}"
-          ver="$(echo "${ver}" | sed 's~-~_~g;)"
+          ver="$(echo "${ver}" | sed 's~-~_~g;')"
           echo "Version: ${ver}" > version.txt
           echo "${ver}" > throne_version.txt
           echo ::set-output name=version::"${ver}"
