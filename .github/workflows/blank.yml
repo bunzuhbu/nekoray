@@ -17,13 +17,12 @@ jobs:
         id: git-check
         run: |
           ver="$(curl --silent https://api.github.com/repos/throneproj/Throne/releases | jq -r 'map(select(.prerelease)) | first | .tag_name')"
-          echo "${ver}" > throne_version.txt
-          echo "Version: ${ver}" > version.txt
-          sed -i 's~-~_~g;' throne_version.txt
-          sed -i 's~-~_~g;' version.txt
           echo "${ver}" > autoupdate.txt
+          echo ::set-output name=revision::"${ver}"
+          ver="$(echo "${ver}" | sed 's~-~_~g;)"
+          echo "Version: ${ver}" > version.txt
+          echo "${ver}" > throne_version.txt
           echo ::set-output name=version::"${ver}"
-          echo ::set-output name=throne_version::"${ver}"
           echo ::set-output name=modified::$([ -z "`git status --porcelain`" ] && echo "false" || echo "true")
 
       - name: Restore Apt Cache
@@ -54,29 +53,29 @@ jobs:
             export basedir="${basedir:-${PWD}}"
             export outdir="${outdir:-${basedir}/release}"
             mkdir -p "${outdir}"
-            export ver=${{ steps.git-check.outputs.throne_version }}
-            export branch=${{ steps.git-check.outputs.version }}
+            export rev=${{ steps.git-check.outputs.revision }}
+            export ver=${{ steps.git-check.outputs.version }}
             pushd "${outdir}"
-            git clone --depth 1 --recurse-submodules --single-branch --branch "${branch}" https://github.com/throneproj/Throne.git "nekoray-${ver}"
-            pushd "${outdir}/nekoray-${ver}/core/server"
+            git clone --depth 1 --recurse-submodules --single-branch --branch "${rev}" https://github.com/throneproj/Throne.git "Throne-${ver}"
+            pushd "${outdir}/Throne-${ver}/core/server"
             HOME="${basedir}" echo go mod download github.com/stretchr/testify
             HOME="${basedir}" echo go mod vendor
-            curl https://api.github.com/repos/sagernet/sing-box/releases/latest | jq -r '.name' > "${outdir}/NekoRay-${ver}.Sagernet.SingBox.Version.txt"
+            curl https://api.github.com/repos/sagernet/sing-box/releases/latest | jq -r '.name' > "${outdir}/Throne-${ver}.Sagernet.SingBox.Version.txt"
             mv vendor "${outdir}"
             git rm -rf ../updater
             popd
             tar -czf "${outdir}/vendor-${ver}.tar.gz" vendor
             popd
-            pushd "${outdir}/nekoray-${ver}"
+            pushd "${outdir}/Throne-${ver}"
             git ls-files --recurse-submodules | tar --transform="s,^,Throne-${ver}/,S" -caf "${outdir}/Throne-${ver}.tar.gz" -T-
             popd
             export GH_TOKEN=${{ secrets.GITHUB_TOKEN }}
-            gh release create "${ver}" "${outdir}/"{{nekoray,vendor}"-${ver}.tar.gz","NekoRay-${ver}.Sagernet.SingBox.Version.txt"} --title "New release: ${ver}" --notes "Release notes here"
+            gh release create "${ver}" "${outdir}/"{{Throne,vendor}"-${ver}.tar.gz","Throne-${ver}.Sagernet.SingBox.Version.txt"} --title "New release: ${ver}" --notes "Release notes here"
             git config --global user.name 'Mahdi-zarei'
             git config --global user.email 'mahdi-zarei@users.noreply.github.com'
-            git add throne_version.txt
-            git add version.txt
             git add autoupdate.txt
+            git add version.txt
+            git add throne_version.txt
             git commit -m "New release version: ${ver}"
             git push
             gh cache delete go-cache || :
@@ -89,4 +88,5 @@ jobs:
           path: |
             go
           key: go-cache
+
 
