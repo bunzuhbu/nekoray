@@ -1,1 +1,1 @@
-Version: 1.0.0_beta.5
+Version: 1.0.0_beta.6
